@@ -1,0 +1,1061 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "1.0.1",
+    "title": "Pet-support API",
+    "description": "Pet-support project"    
+  },
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "servers": [{ "url": "https://pet-support-project.onrender.com" }],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authorization endpoints"
+    },
+    {
+      "name": "User",
+      "description": "Users endpoints"
+    },
+    {
+      "name": "Notices",
+      "description": "Notices endpoints"
+    },
+    {
+      "name": "Friends",
+      "description": "Friends endpoints"
+    },
+    {
+      "name": "News",
+      "description": "News endpoints"
+    }
+  ],
+
+  "paths": {
+    "/api/auth/signup": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "User registration",
+        "parameters": [],
+        "requestBody": {
+          "description": "Registration's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthSignup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Missing field (invalid request body)"    
+          },
+          "409": {
+            "description": "Provided email already exists"  
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "User login",
+        "parameters": [],
+        "requestBody": {
+          "description": "Login's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User is logged in"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Email is wrong. Password is wrong. Email is not verify. "    
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "User logout",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "204": {
+            "description": "The user is logged out"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      }
+    },
+    "/api/auth/verify": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "User verification",
+        "parameters": [],
+        "requestBody": {
+          "description": "Email",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification successful"
+          },
+          "400": {
+            "description": "Missing required field email"
+          },
+          "404": {
+            "description": "User not found"
+          }        
+        }
+      }
+    },
+    "/api/auth/verify/{verificationToken}": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Repeat verify email",
+        "parameters": [{
+          "name": "Verification token",
+          "in": "path",
+          "description": "The token for verification",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "Verification successful"
+          },
+          "400": {
+            "description": "Verification has already been passed"
+          }        
+        }
+      }
+    },
+    "/api/auth/reset":{
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Send reset email",
+        "parameters": [],
+        "requestBody": {
+          "description": "Email",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset email sent"
+          },
+          "400": {
+            "description": "Missing required field email"
+          },
+          "404": {
+            "description": "User not found"
+          }        
+        }
+      }
+    },
+    "/api/auth/reset/{resetToken}":{
+      "patch":{
+        "tags": ["Auth"],
+        "summary": "Reset user's password",
+        "parameters": [
+          {
+          "name": "reset token",
+          "in": "path",
+          "description": "The current token",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+        ],
+        "requestBody": {
+          "description": "Password",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthResetPassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset password successful"
+          },
+          "400": {
+            "description": "Missing required field password"
+          },
+          "404": {
+            "description": "User not found"
+          }        
+        }
+      }
+    },
+
+    "/api/news": {
+      "get": {
+        "tags": ["News"],
+        "summary": "News about pets",
+        "parameters": [
+          {
+          "name": "search",
+          "in": "query",
+          "description": "Search",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "description": "Current page",
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "description": "Limit of notices on the page",
+          "schema": {
+            "type": "number"
+          }
+        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+
+    "/api/friends": {
+      "get": {
+        "tags": ["Friends"],
+        "summary": "Services for pets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+
+    "/api/notices": {
+      "get": {
+        "tags": ["Notices"],
+        "summary": "Get all notices",
+        "parameters": [
+          {
+          "name": "category",
+          "in": "query",
+          "description": "Notice category = 'sell', 'lost-found', 'for-free'",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "description": "Search",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "description": "Current page",
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "description": "Limit of notices on the page",
+          "schema": {
+            "type": "number"
+          }
+        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/notices/user":{
+      "get": {
+        "tags": ["Notices"],
+        "summary": "Get information about current user's notices",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "category",
+          "in": "query",
+          "description": "Notice category = 'sell', 'lost-found', 'for-free'",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "search",
+          "in": "query",
+          "description": "Search",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "myNotice",
+          "in": "query",
+          "description": "Current user's notices = 'true', 'false'",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "favorite",
+          "in": "query",
+          "description": "Current user's favorite notices  = 'true', 'false'",
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "description": "Current page",
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "description": "Limit of notices on the page",
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "There is no such user"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      },
+      "post": {
+        "tags": ["Notices"],
+        "summary": "Add a new notice of current user",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {
+          "description": "Notice information's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPostNotice"
+              }
+            }
+          }
+        },
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "400": {
+            "description": "Error"    
+          }
+        }
+      }
+    },
+    "/api/notices/user/{noticeId}":{
+      "patch": {
+        "tags": ["Notices"],
+        "summary": "Update information about current user's notice",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+      {
+          "name": "NoticeId",
+          "in": "path",
+          "description": "Notice's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "requestBody": {
+          "description": "Notice information's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPostNotice"
+              }
+            }
+          }
+        },
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "400": {
+            "description": "Error"    
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Notices"],
+        "summary": "Delete current user's notice",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+      {
+          "name": "NoticeId",
+          "in": "path",
+          "description": "Notice's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Notice deleted"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "There is no such user"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      }
+    },
+    "/api/notices/user/{noticeId}/favorite":{
+      "post": {
+        "tags": ["Notices"],
+        "summary": "Add current user's notice to the favorite",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "NoticeId",
+          "in": "path",
+          "description": "Notice's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "400": {
+            "description": "Notice already liked"    
+          },
+          "404": {
+            "description": "Notice not found"    
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Notices"],
+        "summary": "Delete current user's notice from favorite",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+      {
+          "name": "NoticeId",
+          "in": "path",
+          "description": "Notice's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Notice deleted"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "Notice not found"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      }
+    },
+
+    "/api/user": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get information about current user and current user's pets",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "There is no such user"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      },
+      "patch":{
+        "tags": ["User"],
+        "summary": "Update information about current user",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {
+          "description": "Update's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete current user",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "User deleted"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "There is no such user"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      }
+    },
+    "/api/user/pets":{
+      "post": {
+        "tags": ["User"],
+        "summary": "Add pet of the current user",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "requestBody": {
+          "description": "Pet information's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPostPet"
+              }
+            }
+          }
+        },
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "400": {
+            "description": "Error"    
+          }
+        }
+      }
+    },
+    "/api/user/pets/{id}":{
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update information about current user's pet",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+      {
+          "name": "Id",
+          "in": "path",
+          "description": "Pet's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "requestBody": {
+          "description": "Pet information's object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPostPet"
+              }
+            }
+          }
+        },
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "201": {
+            "description": "Successful operation"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "400": {
+            "description": "Error"    
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete current user's pet",
+        "parameters": [{
+          "name": "Authorization",
+          "in": "header",
+          "description": "The token issued to the current user",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+      {
+          "name": "Id",
+          "in": "path",
+          "description": "Pet's Id",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Pet deleted"
+          },
+          "401": {
+            "description": "Missing header with authorization token"    
+          },
+          "404": {
+            "description": "There is no such user"    
+          },
+          "500": {
+            "description": "Server error"    
+          }
+        }
+      }
+    }
+  },
+
+  "components": {
+    "schemas": {
+      "AuthSignup": {
+        "type": "object",
+        "required": ["email", "password","name", "city", "phone"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User's email",
+            "format": "email",
+            "example": "user@mail.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password",
+            "format": "password",
+            "example": "password123"
+          },
+          "name": {
+            "type": "string",
+            "description": "User's name",
+            "example": "Taras Shevchenko"
+          },
+          "city": {
+            "type": "string",
+            "description": "User's city",
+            "example": "Bucha, Kyiv"
+          },
+          "phone": {
+            "type": "string",
+            "description": "User's phone number",
+            "example": "+380671234567"
+          }
+        }
+      },
+      "AuthLogin": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User's email",
+            "format": "email",
+            "example": "user@mail.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password",
+            "format": "password",
+            "example": "password123"
+          }
+        }
+      },
+      "AuthVerify": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User's email",
+            "format": "email",
+            "example": "user@mail.com"
+          }
+        }
+      },
+      "AuthResetPassword": {
+        "type": "object",
+        "required": ["password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User's password",
+            "format": "password",
+            "example": "password123"
+          }
+        }
+      },
+      "UserUpdate": {
+        "type": "object",
+        "required": ["name", "password", "avatarUrl", "birthdate", "phone", "city"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User's name",
+            "example": "Taras Shevchenko"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password",
+            "format": "password",
+            "example": "password123"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "User's avatar",
+            "example": "Here will be user's avatar"
+          },
+          "birthdate": {
+            "type": "string",
+            "description": "User's birthdate",
+            "example": "01.01.2000"
+          },
+          "phone": {
+            "type": "string",
+            "description": "User's phone number",
+            "example": "+380671234567"
+          },
+          "city": {
+            "type": "string",
+            "description": "User's city",
+            "example": "Bucha, Kyiv"
+          }
+        }
+      },
+      "UserPostPet": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Pet's name",
+            "example": "Rey"
+          },
+          "date": {
+            "type": "string",
+            "description": "Pat's birthdate",
+            "example": "31.12.2017"
+          },
+          "breed": {
+            "type": "string",
+            "description": "Pet's breed",
+            "example": "shepherd"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "Pet's avatar",
+            "example": "Here will be a pet photo"
+          },
+          "description": {
+            "type": "string",
+            "description": "User's comments about pet",
+            "example": "Very beautiful, smart and strong. Good for long walks"
+          }
+        }
+      },
+      "UserPostNotice": {
+        "type": "object",
+        "required": ["category", "title","avatarUrl", "sex"],
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Notice's category",
+            "example": "sell"
+          },
+          "title": {
+            "type": "string",
+            "description": "Notice's title",
+            "example": "A german shepherd"
+          },
+          "name": {
+            "type": "string",
+            "description": "Pet's name",
+            "example": "Rey"
+          },
+          "birthdate": {
+            "type": "string",
+            "description": "Pat's birthdate",
+            "example": "12.31.2017"
+          },
+          "breed": {
+            "type": "string",
+            "description": "Pet's breed",
+            "example": "shepherd"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "description": "Pet's avatar",
+            "example": "Here will be a pet photo"
+          },
+          "sex": {
+            "type": "string",
+            "description": "Pet's sex",
+            "example": "female"
+          },
+          "location": {
+            "type": "string",
+            "description": "Pet's location",
+            "example": "Bucha, Kyiv"
+          },
+          "price": {
+            "type": "number",
+            "description": "Pet's price",
+            "example": 500
+          },
+          "comments": {
+            "type": "string",
+            "description": "User's comments about pet",
+            "example": "Very beautiful, smart and strong. Good for long walks"
+          }
+        }
+      }
+      
+
+    },
+
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+
+
+}
